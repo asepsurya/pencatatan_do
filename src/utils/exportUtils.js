@@ -54,24 +54,32 @@ export const exportToPDF = (dos) => {
     const doc = new jsPDF('l', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.width;
 
-    // Header Color Bar
-    doc.setFillColor(30, 58, 138); // Navy Blue
-    doc.rect(0, 0, pageWidth, 40, 'F');
+    // Logo Overlay (using public path) - Minimalist size
+    try {
+        doc.addImage('/logo.png', 'PNG', 14, 8, 18, 18);
+    } catch (e) {
+        console.warn('Logo could not be loaded for PDF', e);
+    }
 
-    // Branding
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
+    // Branding - Black & White
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.text('KOPERASI KARYA SURYA ASRI', 14, 22);
+    doc.text('KOPERASI KARYA SURYA ASRI', 35, 18);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('LAPORAN PENERIMAAN DELIVERY ORDER', 14, 30);
+    doc.text('Rekap Delivery Order SPPG MBG NURUL CENDIKIA ke Koperasi', 35, 25);
 
     // Metadata Right-aligned
-    doc.setFontSize(9);
-    doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, pageWidth - 14, 22, { align: 'right' });
-    doc.text(`Total Data: ${dos.length} Transaksi`, pageWidth - 14, 28, { align: 'right' });
+    doc.setFontSize(8);
+    doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, pageWidth - 14, 18, { align: 'right' });
+    doc.text(`Total Data: ${dos.length} Transaksi`, pageWidth - 14, 23, { align: 'right' });
+
+    // Header divider line
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.line(14, 30, pageWidth - 14, 30);
 
     const tableData = [];
     dos.forEach(doItem => {
@@ -91,23 +99,26 @@ export const exportToPDF = (dos) => {
     });
 
     autoTable(doc, {
-        startY: 45,
+        startY: 35,
         head: [['Tanggal', 'Jam', 'No. DO', 'Pengirim', 'Penerima', 'Nama Barang', 'Qty', 'Catatan']],
         body: tableData,
-        theme: 'striped',
+        theme: 'grid', // 'grid' for simple border-based look
         headStyles: {
-            fillColor: [30, 58, 138],
-            textColor: 255,
+            fillColor: [255, 255, 255],
+            textColor: 0,
             fontSize: 8,
             fontStyle: 'bold',
-            halign: 'center'
+            halign: 'center',
+            lineWidth: 0.1,
+            lineColor: [0, 0, 0]
         },
-        alternateRowStyles: { fillColor: [245, 247, 250] },
         styles: {
             fontSize: 7.5,
             cellPadding: 3,
             valign: 'middle',
-            overflow: 'linebreak'
+            overflow: 'linebreak',
+            textColor: 0,
+            lineColor: [0, 0, 0]
         },
         columnStyles: {
             0: { cellWidth: 18, halign: 'center' },
@@ -123,7 +134,7 @@ export const exportToPDF = (dos) => {
             // Footer
             const str = "Halaman " + doc.internal.getNumberOfPages();
             doc.setFontSize(8);
-            doc.setTextColor(150);
+            doc.setTextColor(100);
             doc.text(str, pageWidth / 2, doc.internal.pageSize.height - 10, { align: 'center' });
         }
     });

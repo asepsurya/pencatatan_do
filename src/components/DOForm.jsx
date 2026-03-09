@@ -167,6 +167,45 @@ const DOForm = ({ onAdd, initialData, onCancel }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // VALIDATION
+        if (!formData.doNumber || !formData.doNumber.startsWith('DO/')) {
+            toast.error('Nomor DO tidak valid! Harus berformat DO/YYYYMMDD/XXXX');
+            return;
+        }
+        if (!formData.date) {
+            toast.error('Silakan pilih tanggal masuk');
+            return;
+        }
+        if (!formData.arrivalTime) {
+            toast.error('Silakan pilih jam masuk');
+            return;
+        }
+        if (!formData.sender) {
+            toast.error('Nama pengirim wajib diisi');
+            return;
+        }
+        if (!formData.receiver) {
+            toast.error('Nama penerima wajib diisi');
+            return;
+        }
+
+        // Item Validation
+        if (formData.items.length === 0) {
+            toast.error('Minimal harus ada 1 item barang');
+            return;
+        }
+        for (const item of formData.items) {
+            if (!item.name || !item.quantity || !item.unit) {
+                toast.error('Semua kolom item barang wajib diisi');
+                return;
+            }
+            if (parseFloat(item.quantity) <= 0) {
+                toast.error('Quantity barang harus lebih dari 0');
+                return;
+            }
+        }
+
         setIsSaving(true);
         try {
             await onAdd(formData, previewImage);
@@ -211,8 +250,11 @@ const DOForm = ({ onAdd, initialData, onCancel }) => {
         };
 
         const handleDateSelect = (day) => {
-            const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
-            setFormData(prev => ({ ...prev, date: newDate.toISOString().split('T')[0] }));
+            const year = viewDate.getFullYear();
+            const month = String(viewDate.getMonth() + 1).padStart(2, '0');
+            const date = String(day).padStart(2, '0');
+            const dateStr = `${year}-${month}-${date}`;
+            setFormData(prev => ({ ...prev, date: dateStr }));
             setShowDatePicker(false);
         };
 
@@ -256,40 +298,123 @@ const DOForm = ({ onAdd, initialData, onCancel }) => {
     };
 
     const TimePickerModal = () => {
-        const times = [];
-        for (let h = 0; h < 24; h++) {
-            for (let m = 0; m < 60; m += 30) {
-                const hh = String(h).padStart(2, '0');
-                const mm = String(m).padStart(2, '0');
-                times.push(`${hh}:${mm}`);
-            }
-        }
+        const [h24, m] = (formData.arrivalTime || '08:00').split(':');
+        const initialH24 = parseInt(h24);
 
-        const handleTimeSelect = (time) => {
-            setFormData(prev => ({ ...prev, arrivalTime: time }));
+        // Convert 24h to 12h
+        const initialPeriod = initialH24 >= 12 ? 'PM' : 'AM';
+        const initialH12 = initialH24 % 12 || 12;
+
+        const [tempH, setTempH] = useState(String(initialH12).padStart(2, '0'));
+        const [tempM, setTempM] = useState(m);
+        const [period, setPeriod] = useState(initialPeriod);
+
+        const handleSaveTime = () => {
+            let h = parseInt(tempH);
+            if (period === 'PM' && h < 12) h += 12;
+            if (period === 'AM' && h === 12) h = 0;
+
+            const finalH = String(h).padStart(2, '0');
+            const finalM = String(tempM).padStart(2, '0');
+            setFormData(prev => ({ ...prev, arrivalTime: `${finalH}:${finalM}` }));
             setShowTimePicker(false);
+        };
+
+        const handleHourChange = (val) => {
+            let num = parseInt(val);
+            if (isNaN(num)) num = 1;
+            if (num > 12) num = 12;
+            if (num < 1) num = 1;
+            setTempH(String(num).padStart(2, '0'));
+        };
+
+        const handleMinuteChange = (val) => {
+            let num = parseInt(val);
+            if (isNaN(num)) num = 0;
+            if (num > 59) num = 59;
+            if (num < 0) num = 0;
+            setTempM(String(num).padStart(2, '0'));
         };
 
         return (
             <div style={{
                 position: 'absolute', top: '100%', left: 0, zIndex: 1000, marginTop: '8px',
-                backgroundColor: 'white', borderRadius: '1.25rem', padding: '0.5rem',
+                backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.5rem',
                 boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                width: '100%', maxHeight: '300px', overflowY: 'auto', border: '1px solid #e2e8f0'
+                width: '320px', border: '1px solid #e2e8f0'
             }}>
-                <div style={{ padding: '1rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 800, fontSize: '1rem' }}>{formatTimeDisplay(formData.arrivalTime)}</span>
-                    <button type="button" onClick={() => setShowTimePicker(false)} style={{ border: 'none', background: '#f8fafc', padding: '4px', borderRadius: '50%', cursor: 'pointer' }}><X size={16} /></button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--primary)' }}>Set Arrival Time</span>
+                    <button type="button" onClick={() => setShowTimePicker(false)} style={{ border: 'none', background: '#f8fafc', padding: '6px', borderRadius: '50%', cursor: 'pointer' }}><X size={18} /></button>
                 </div>
-                {times.map(t => (
-                    <div key={t} onClick={() => handleTimeSelect(t)} style={{
-                        padding: '1rem', cursor: 'pointer', borderRadius: '0.75rem', fontSize: '0.9rem', fontWeight: formData.arrivalTime === t ? 700 : 500,
-                        backgroundColor: formData.arrivalTime === t ? '#f1f5f9' : 'transparent',
-                        color: formData.arrivalTime === t ? 'var(--primary)' : '#475569'
-                    }}>
-                        {formatTimeDisplay(t)}
+
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', alignItems: 'center', marginBottom: '1.5rem', backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Hour</span>
+                        <input
+                            type="number"
+                            min="1"
+                            max="12"
+                            value={tempH}
+                            onChange={(e) => setTempH(e.target.value)}
+                            onBlur={(e) => handleHourChange(e.target.value)}
+                            style={{
+                                padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0',
+                                fontSize: '1.5rem', fontWeight: 700, textAlign: 'center',
+                                backgroundColor: 'white', width: '70px', outline: 'none',
+                                color: 'var(--primary)'
+                            }}
+                        />
                     </div>
-                ))}
+
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#cbd5e1', marginTop: '1.2rem' }}>:</span>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Min</span>
+                        <input
+                            type="number"
+                            min="0"
+                            max="59"
+                            value={tempM}
+                            onChange={(e) => setTempM(e.target.value)}
+                            onBlur={(e) => handleMinuteChange(e.target.value)}
+                            style={{
+                                padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0',
+                                fontSize: '1.5rem', fontWeight: 700, textAlign: 'center',
+                                backgroundColor: 'white', width: '70px', outline: 'none',
+                                color: 'var(--primary)'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '1.2rem' }}>
+                        <button
+                            type="button"
+                            onClick={() => setPeriod('AM')}
+                            style={{
+                                padding: '6px 10px', borderRadius: '6px', border: 'none', fontSize: '0.75rem', fontWeight: 800,
+                                backgroundColor: period === 'AM' ? 'var(--primary)' : 'white',
+                                color: period === 'AM' ? 'white' : '#94a3b8',
+                                cursor: 'pointer', transition: 'all 0.2s', border: period === 'AM' ? 'none' : '1px solid #e2e8f0'
+                            }}
+                        >AM</button>
+                        <button
+                            type="button"
+                            onClick={() => setPeriod('PM')}
+                            style={{
+                                padding: '6px 10px', borderRadius: '6px', border: 'none', fontSize: '0.75rem', fontWeight: 800,
+                                backgroundColor: period === 'PM' ? 'var(--primary)' : 'white',
+                                color: period === 'PM' ? 'white' : '#94a3b8',
+                                cursor: 'pointer', transition: 'all 0.2s', border: period === 'PM' ? 'none' : '1px solid #e2e8f0'
+                            }}
+                        >PM</button>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button type="button" onClick={() => setShowTimePicker(false)} style={{ flex: 1, border: 'none', backgroundColor: '#f1f5f9', padding: '0.85rem', borderRadius: '0.85rem', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                    <button type="button" onClick={handleSaveTime} style={{ flex: 1, border: 'none', backgroundColor: 'var(--primary)', color: 'white', padding: '0.85rem', borderRadius: '0.85rem', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' }}>Apply</button>
+                </div>
             </div>
         );
     };

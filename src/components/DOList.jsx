@@ -108,7 +108,7 @@ const DOList = ({ dos, onDelete, onEdit }) => {
             {/* Layout Switching: Desktop (Table + Sidebar) vs Mobile (Card List) */}
             <div className="layout-switcher">
                 {/* DESKTOP VIEW (TABLE) */}
-                <div className="desktop-only" style={{ display: 'grid', gridTemplateColumns: selectedDo ? '1.8fr 1fr' : '1fr', gap: '1.5rem', transition: 'all 0.3s', width: '100%' }}>
+                <div className="desktop-only" style={{ display: 'grid', gridTemplateColumns: selectedDo ? '0.6fr 1.4fr' : '1fr', gap: '1.5rem', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)', width: '100%' }}>
                     <div className="card" style={{ overflow: 'hidden', width: '100%' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead style={{ backgroundColor: 'var(--bg-main)' }}>
@@ -160,25 +160,47 @@ const DOList = ({ dos, onDelete, onEdit }) => {
 
                     {/* Desktop Detail Sidebar */}
                     {selectedDo && (
-                        <div className="card animate-fade-in" style={{ padding: '1.5rem', height: 'fit-content', position: 'sticky', top: '1.5rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                                <h3 style={{ margin: 0 }}>Detail Pengiriman</h3>
-                                <button onClick={() => setSelectedDo(null)} style={{ border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
+                        <div className="card animate-fade-in" style={{ padding: '2.5rem', height: 'fit-content', position: 'sticky', top: '1.5rem', width: '100%' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{ backgroundColor: 'white', padding: '0.3rem', borderRadius: '0.75rem', display: 'flex', width: '36px', height: '36px', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+                                        <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    </div>
+                                    <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>Detail Pengiriman</h3>
+                                </div>
+                                <button onClick={() => setSelectedDo(null)} style={{ border: 'none', background: '#f8fafc', padding: '8px', borderRadius: '50%', color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s' }} tabIndex={0}><X size={20} /></button>
                             </div>
 
-                            <div style={{ backgroundColor: 'var(--bg-main)', padding: '1rem', borderRadius: '0.75rem' }}>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>NOMOR DO</p>
-                                <p style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--primary)', margin: 0 }}>#{selectedDo.doNumber}</p>
+                            <div style={{ backgroundColor: 'var(--bg-main)', padding: '1.25rem', borderRadius: '1rem', border: '1px solid var(--border)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <FileText size={14} color="var(--primary)" />
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nomor DO</p>
+                                </div>
+                                <p style={{ fontWeight: 800, fontSize: '1.5rem', color: 'var(--primary)', margin: 0 }}>{selectedDo.doNumber}</p>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginTop: '1.25rem' }}>
                                     <div>
-                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '2px' }}>TANGGAL</p>
-                                        <p style={{ fontWeight: 600, fontSize: '0.85rem' }}>{selectedDo.date}</p>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                                            <Filter size={12} color="var(--text-muted)" />
+                                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0, fontWeight: 700 }}>TANGGAL</p>
+                                        </div>
+                                        <p style={{ fontWeight: 700, fontSize: '1rem', margin: 0 }}>{selectedDo.date}</p>
                                     </div>
                                     <div>
-                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '2px' }}>WAKTU</p>
-                                        <p style={{ fontWeight: 600, fontSize: '0.85rem' }}>{selectedDo.arrivalTime || '--:--'}</p>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                                            <Clock size={12} color="var(--text-muted)" />
+                                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0, fontWeight: 700 }}>WAKTU</p>
+                                        </div>
+                                        <p style={{ fontWeight: 700, fontSize: '1rem', margin: 0 }}>{selectedDo.arrivalTime || '--:--'}</p>
                                     </div>
+                                </div>
+
+                                <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                                        <Package size={12} color="var(--text-muted)" />
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0, fontWeight: 700 }}>PENGIRIM</p>
+                                    </div>
+                                    <p style={{ fontWeight: 700, fontSize: '1rem', margin: 0 }}>{selectedDo.sender}</p>
                                 </div>
                             </div>
 

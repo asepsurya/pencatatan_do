@@ -1,16 +1,59 @@
-# React + Vite
+# Koperasi Karya Surya Asri - Pencatatan Delivery Order (DO)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, web-based Delivery Order management system for Koperasi Karya Surya Asri, featuring AI-powered document scanning, real-time cloud synchronization, and comprehensive reporting.
 
-Currently, two official plugins are available:
+![Dashboard Preview](public/dashboard.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## React Compiler
+- **AI Smart Scan**: Automatically extract data from delivery order photos using AI.
+- **Real-time Sync**: Data is instantly synchronized across devices using Firebase.
+- **Responsive Design**: Optimized for both mobile and desktop users.
+- **Role-based Access**: Secure login and professional admin dashboard.
+- **Reporting**: Export history to Excel and print delivery reports.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
 
-## Expanding the ESLint configuration
+- **Frontend**: React.js, Vite
+- **Styling**: Vanilla CSS, Lucide Icons
+- **Backend**: Firebase Authentication & Firestore
+- **Utilities**: AI Integration, Excel/PDF Export
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+![History Preview](public/history.png)
+
+## 📦 Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone [repository-url]
+   cd pencatatan_do
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Firebase**
+   - Create a project on [Firebase Console](https://console.firebase.google.com/).
+   - Copy your config to `src/firebase.js`.
+
+4. **Run Development Server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Build for Production**
+   ```bash
+   npm run build
+   ```
+
+## 👨‍💻 Development
+
+The app uses Vite for HMR (Hot Module Replacement). To start developing:
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`.

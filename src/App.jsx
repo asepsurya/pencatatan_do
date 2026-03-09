@@ -297,8 +297,8 @@ const App = () => {
         zIndex: 10
       }}>
         <div style={{ padding: '2rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ backgroundColor: 'var(--primary)', padding: '0.5rem', borderRadius: '0.75rem', display: 'flex' }}>
-            <FileText size={24} color="white" />
+          <div style={{ backgroundColor: 'white', padding: '0.4rem', borderRadius: '0.75rem', display: 'flex', width: '40px', height: '40px', alignItems: 'center', justifyContent: 'center' }}>
+            <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
             <h2 style={{ color: 'white', fontSize: '1rem', margin: 0, lineHeight: '1.2' }}>Koperasi Karya Surya Asri</h2>

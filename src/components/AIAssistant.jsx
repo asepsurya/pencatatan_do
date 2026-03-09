@@ -104,8 +104,8 @@ const AIAssistant = ({ dos, user }) => {
                         justifyContent: 'space-between'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{ padding: '0.5rem', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '0.75rem' }}>
-                                <Bot size={20} />
+                            <div style={{ backgroundColor: 'white', padding: '0.3rem', borderRadius: '0.5rem', display: 'flex', width: '32px', height: '32px', alignItems: 'center', justifyContent: 'center' }}>
+                                <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             </div>
                             <div>
                                 <h3 style={{ fontSize: '0.95rem', margin: 0, fontWeight: 700, color: 'white' }}>AI Assistant</h3>

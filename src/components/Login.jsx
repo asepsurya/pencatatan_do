@@ -26,6 +26,8 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [errors, setErrors] = useState({});
 
     const saveUserProfile = async (user) => {
         try {
@@ -57,21 +59,57 @@ const Login = () => {
         }
     };
 
+    const validate = () => {
+        const newErrors = {};
+
+        if (mode === 'signup') {
+            if (!fullName.trim()) {
+                newErrors.fullName = 'Nama lengkap wajib diisi';
+            } else if (fullName.trim().length < 3) {
+                newErrors.fullName = 'Nama lengkap minimal 3 karakter';
+            } else if (!/^[a-zA-Z\s.'-]+$/.test(fullName)) {
+                newErrors.fullName = 'Nama mengandung karakter tidak valid';
+            }
+        }
+
+        if (!email.trim()) {
+            newErrors.email = 'Email wajib diisi';
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                newErrors.email = 'Format email tidak valid';
+            }
+        }
+
+        if (!password) {
+            newErrors.password = 'Password wajib diisi';
+        } else if (password.length < 6) {
+            newErrors.password = 'Password minimal 6 karakter';
+        }
+
+        if (mode === 'signup') {
+            if (!confirmPassword) {
+                newErrors.confirmPassword = 'Konfirmasi password wajib diisi';
+            } else if (confirmPassword !== password) {
+                newErrors.confirmPassword = 'Password tidak cocok';
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleEmailAuth = async (e) => {
         e.preventDefault();
-        if (!email || !password) {
-            toast.warning('Mohon isi email dan password');
+
+        if (!validate()) {
+            toast.error('Mohon perbaiki kesalahan pada form');
             return;
         }
 
         setLoading(true);
         try {
             if (mode === 'signup') {
-                if (!fullName) {
-                    toast.warning('Mohon isi nama lengkap');
-                    setLoading(false);
-                    return;
-                }
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: fullName });
                 await saveUserProfile(userCredential.user);
@@ -87,6 +125,7 @@ const Login = () => {
             if (error.code === 'auth/user-not-found') msg += 'Email tidak terdaftar.';
             else if (error.code === 'auth/wrong-password') msg += 'Password salah.';
             else if (error.code === 'auth/email-already-in-use') msg += 'Email sudah digunakan.';
+            else if (error.code === 'auth/invalid-credential') msg += 'Email atau password salah.';
             else msg += error.message;
             toast.error(msg);
         } finally {
@@ -116,8 +155,8 @@ const Login = () => {
                 }}
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '4rem' }}>
-                    <div style={{ backgroundColor: '#000', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                        <FileText color="white" size={24} />
+                    <div style={{ backgroundColor: 'white', padding: '0.4rem', borderRadius: '0.75rem', display: 'flex', width: '40px', height: '40px', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+                        <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     <span style={{ fontSize: '1.25rem', fontWeight: '700', letterSpacing: '-0.5px' }}>Koperasi Karya Surya Asri</span>
                 </div>
@@ -187,19 +226,21 @@ const Login = () => {
                                 <input
                                     type="text"
                                     placeholder="Full Name"
+                                    disabled={loading}
                                     value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
+                                    onChange={(e) => { setFullName(e.target.value); if (errors.fullName) setErrors(prev => ({ ...prev, fullName: null })); }}
                                     className="input-field"
                                     style={{
                                         padding: '1rem 1rem 1rem 3rem',
                                         borderRadius: '0.9rem',
                                         fontSize: '1rem',
-                                        border: '1px solid #e2e8f0',
+                                        border: errors.fullName ? '1px solid #ef4444' : '1px solid #e2e8f0',
                                         width: '100%',
                                         backgroundColor: 'white'
                                     }}
                                 />
                             </div>
+                            {errors.fullName && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', marginLeft: '0.5rem' }}>{errors.fullName}</p>}
                         </div>
                     )}
 
@@ -211,24 +252,26 @@ const Login = () => {
                             <input
                                 type="email"
                                 placeholder="Email Address"
+                                disabled={loading}
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors(prev => ({ ...prev, email: null })); }}
                                 className="input-field"
                                 style={{
                                     padding: '1rem 1rem 1rem 3rem',
                                     borderRadius: '0.9rem',
                                     fontSize: '1rem',
-                                    border: '1px solid #e2e8f0',
+                                    border: errors.email ? '1px solid #ef4444' : '1px solid #e2e8f0',
                                     width: '100%',
                                     backgroundColor: 'white'
                                 }}
                             />
-                            {email.includes('@') && email.includes('.') && (
+                            {email && !errors.email && email.includes('@') && email.includes('.') && (
                                 <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#22c55e' }}>
                                     <CheckCircle2 size={20} />
                                 </div>
                             )}
                         </div>
+                        {errors.email && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', marginLeft: '0.5rem' }}>{errors.email}</p>}
                     </div>
 
                     <div className="input-group" style={{ margin: 0 }}>
@@ -239,20 +282,49 @@ const Login = () => {
                             <input
                                 type="password"
                                 placeholder="Password"
+                                disabled={loading}
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors(prev => ({ ...prev, password: null })); }}
                                 className="input-field"
                                 style={{
                                     padding: '1rem 1rem 1rem 3rem',
                                     borderRadius: '0.9rem',
                                     fontSize: '1rem',
-                                    border: '1px solid #e2e8f0',
+                                    border: errors.password ? '1px solid #ef4444' : '1px solid #e2e8f0',
                                     width: '100%',
                                     backgroundColor: 'white'
                                 }}
                             />
                         </div>
+                        {errors.password && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', marginLeft: '0.5rem' }}>{errors.password}</p>}
                     </div>
+
+                    {mode === 'signup' && (
+                        <div className="input-group" style={{ margin: 0 }}>
+                            <div style={{ position: 'relative' }}>
+                                <div style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#999' }}>
+                                    <Lock size={20} />
+                                </div>
+                                <input
+                                    type="password"
+                                    placeholder="Confirm Password"
+                                    disabled={loading}
+                                    value={confirmPassword}
+                                    onChange={(e) => { setConfirmPassword(e.target.value); if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: null })); }}
+                                    className="input-field"
+                                    style={{
+                                        padding: '1rem 1rem 1rem 3rem',
+                                        borderRadius: '0.9rem',
+                                        fontSize: '1rem',
+                                        border: errors.confirmPassword ? '1px solid #ef4444' : '1px solid #e2e8f0',
+                                        width: '100%',
+                                        backgroundColor: 'white'
+                                    }}
+                                />
+                            </div>
+                            {errors.confirmPassword && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', marginLeft: '0.5rem' }}>{errors.confirmPassword}</p>}
+                        </div>
+                    )}
 
                     <button
                         type="submit"
