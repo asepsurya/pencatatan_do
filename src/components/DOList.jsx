@@ -84,8 +84,8 @@ const DOList = ({ dos, onDelete, onEdit }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {/* Desktop & Mobile Shared Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <div style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
+            <div className="filter-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <div className="search-container" style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
                     <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                     <input
                         type="text"
@@ -95,8 +95,8 @@ const DOList = ({ dos, onDelete, onEdit }) => {
                         style={{ width: '100%', padding: '0.75rem 1rem 0.75rem 2.75rem', borderRadius: '2rem', border: '1px solid var(--border)', outline: 'none' }}
                     />
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', backgroundColor: 'white', padding: '0 1rem', borderRadius: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', minWidth: '130px' }}>
+                <div className="action-container" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <div className="sort-box" style={{ position: 'relative', display: 'flex', alignItems: 'center', backgroundColor: 'white', padding: '0 1rem', borderRadius: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', minWidth: '130px' }}>
                         <Clock size={16} color="var(--primary)" style={{ marginRight: '0.5rem' }} />
                         <select
                             value={sortOrder}
@@ -122,7 +122,7 @@ const DOList = ({ dos, onDelete, onEdit }) => {
                         <ChevronRight size={14} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%) rotate(90deg)', pointerEvents: 'none', color: 'var(--text-muted)' }} />
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'white', padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="date-box" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'white', padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
                         <Filter size={16} color="var(--text-muted)" />
                         <input
                             type="date"
@@ -572,6 +572,32 @@ const DOList = ({ dos, onDelete, onEdit }) => {
                 </div>,
                 document.body
             )}
+            <style>{`
+                @media (max-width: 768px) {
+                    .filter-header {
+                        flex-direction: column !important;
+                        align-items: stretch !important;
+                    }
+                    .search-container {
+                        min-width: 100% !important;
+                    }
+                    .action-container {
+                        width: 100% !important;
+                        display: grid !important;
+                        grid-template-columns: 1fr !important;
+                        gap: 0.75rem !important;
+                    }
+                    .sort-box, .date-box {
+                        width: 100% !important;
+                        justify-content: space-between !important;
+                        padding: 0.75rem 1rem !important;
+                    }
+                    .date-box input {
+                        flex: 1;
+                        text-align: center;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
