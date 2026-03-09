@@ -23,6 +23,11 @@ const DOList = ({ dos, onDelete, onEdit }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
     const [selectedDo, setSelectedDo] = useState(null);
+    const [sortOrder, setSortOrder] = useState('desc'); // 'desc' for terbaru, 'asc' for terlama
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+    const [lightboxImage, setLightboxImage] = useState(null);
 
     const filters = ['All', 'Pending', 'Delivered'];
 
@@ -30,11 +35,31 @@ const DOList = ({ dos, onDelete, onEdit }) => {
         const matchesSearch = item.doNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.sender.toLowerCase().includes(searchTerm.toLowerCase());
 
-        if (activeFilter === 'All') return matchesSearch;
-        if (activeFilter === 'Pending') return matchesSearch ? !item.isClosed : false;
-        if (activeFilter === 'Delivered') return matchesSearch ? item.isClosed : false;
-        return matchesSearch;
+        const itemDate = item.date; // Format YYYY-MM-DD
+        const matchesDateRange = (!dateRange.start || itemDate >= dateRange.start) &&
+            (!dateRange.end || itemDate <= dateRange.end);
+
+        let matchesStatus = true;
+        if (activeFilter === 'Pending') matchesStatus = !item.isClosed;
+        if (activeFilter === 'Delivered') matchesStatus = item.isClosed;
+
+        return matchesSearch && matchesDateRange && matchesStatus;
+    }).sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.arrivalTime || '00:00'}`);
+        const dateB = new Date(`${b.date}T${b.arrivalTime || '00:00'}`);
+        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
+
+    // Pagination Logic
+    const totalItems = filteredDos.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedDos = filteredDos.slice(startIndex, startIndex + itemsPerPage);
+
+    const senderHistory = selectedDo ? dos
+        .filter(item => item.sender === selectedDo.sender && item.id !== selectedDo.id)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5) : [];
 
     const handleExport = (type, data) => {
         try {
@@ -59,22 +84,65 @@ const DOList = ({ dos, onDelete, onEdit }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {/* Desktop & Mobile Shared Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
                     <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                     <input
                         type="text"
                         placeholder="Search records..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         style={{ width: '100%', padding: '0.75rem 1rem 0.75rem 2.75rem', borderRadius: '2rem', border: '1px solid var(--border)', outline: 'none' }}
                     />
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button onClick={() => handleExport('excel', dos)} className="btn btn-secondary desktop-only">
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', backgroundColor: 'white', padding: '0 1rem', borderRadius: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', minWidth: '130px' }}>
+                        <Clock size={16} color="var(--primary)" style={{ marginRight: '0.5rem' }} />
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            style={{
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                color: 'var(--text-main)',
+                                cursor: 'pointer',
+                                background: 'transparent',
+                                appearance: 'none',
+                                padding: '0.65rem 1.5rem 0.65rem 0',
+                                width: '100%',
+                                position: 'relative',
+                                zIndex: 2
+                            }}
+                        >
+                            <option value="desc">Terbaru</option>
+                            <option value="asc">Terlama</option>
+                        </select>
+                        <ChevronRight size={14} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%) rotate(90deg)', pointerEvents: 'none', color: 'var(--text-muted)' }} />
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'white', padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+                        <Filter size={16} color="var(--text-muted)" />
+                        <input
+                            type="date"
+                            value={dateRange.start}
+                            onChange={(e) => { setDateRange(prev => ({ ...prev, start: e.target.value })); setCurrentPage(1); }}
+                            style={{ border: 'none', outline: 'none', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', background: 'none' }}
+                        />
+                        <span style={{ color: 'var(--text-muted)' }}>-</span>
+                        <input
+                            type="date"
+                            value={dateRange.end}
+                            onChange={(e) => { setDateRange(prev => ({ ...prev, end: e.target.value })); setCurrentPage(1); }}
+                            style={{ border: 'none', outline: 'none', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', background: 'none' }}
+                        />
+                    </div>
+
+                    <button onClick={() => handleExport('excel', filteredDos)} className="btn btn-secondary desktop-only">
                         <FileSpreadsheet size={18} /> Export Excel
                     </button>
-                    <button onClick={() => handleExport('pdf', dos)} className="btn btn-primary">
+                    <button onClick={() => handleExport('pdf', filteredDos)} className="btn btn-primary">
                         <Printer size={18} /> <span className="desktop-only">Print All Reports</span>
                     </button>
                 </div>
@@ -85,7 +153,7 @@ const DOList = ({ dos, onDelete, onEdit }) => {
                 {filters.map(f => (
                     <button
                         key={f}
-                        onClick={() => setActiveFilter(f)}
+                        onClick={() => { setActiveFilter(f); setCurrentPage(1); }}
                         style={{
                             padding: '0.6rem 1.25rem',
                             borderRadius: '2rem',
@@ -122,7 +190,7 @@ const DOList = ({ dos, onDelete, onEdit }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredDos.map(item => (
+                                {paginatedDos.map(item => (
                                     <tr
                                         key={item.id}
                                         onClick={() => setSelectedDo(item)}
@@ -224,6 +292,51 @@ const DOList = ({ dos, onDelete, onEdit }) => {
                                 </div>
                             </div>
 
+                            {selectedDo.imageUrl && (
+                                <div style={{ marginTop: '2rem' }}>
+                                    <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Evidence Image</h4>
+                                    <div
+                                        onClick={() => setLightboxImage(selectedDo.imageUrl)}
+                                        style={{ position: 'relative', cursor: 'zoom-in', borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--border)', transition: 'transform 0.2s' }}
+                                        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                                        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                    >
+                                        <img src={selectedDo.imageUrl} style={{ width: '100%', display: 'block' }} alt="DO Evidence" />
+                                        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0)', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Search size={24} color="white" style={{ opacity: 0, transition: 'opacity 0.2s' }} className="zoom-icon" />
+                                        </div>
+                                    </div>
+                                    <style>{` div:hover .zoom-icon { opacity: 1 !important; } `}</style>
+                                </div>
+                            )}
+
+                            {senderHistory.length > 0 && (
+                                <div style={{ marginTop: '2rem' }}>
+                                    <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Riwayat DO Pengirim</h4>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {senderHistory.map(hist => (
+                                            <div key={hist.id} onClick={() => setSelectedDo(hist)} style={{
+                                                padding: '0.75rem 1rem',
+                                                backgroundColor: '#f8fafc',
+                                                borderRadius: '0.75rem',
+                                                border: '1px solid #f1f5f9',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                                onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                                                onMouseOut={(e) => e.currentTarget.style.borderColor = '#f1f5f9'}
+                                            >
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>#{hist.doNumber.split('/').pop()}</span>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{hist.date}</span>
+                                                </div>
+                                                <p style={{ fontSize: '0.75rem', margin: 0, color: 'var(--text-muted)' }}>{hist.items.length} items &bull; {hist.isClosed ? 'Delivered' : 'Pending'}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                                     <button onClick={() => handleExport('word', [selectedDo])} className="btn btn-secondary" style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}>
@@ -243,13 +356,13 @@ const DOList = ({ dos, onDelete, onEdit }) => {
 
                 {/* MOBILE VIEW (CARDS) */}
                 <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
-                    {filteredDos.length === 0 ? (
+                    {paginatedDos.length === 0 ? (
                         <div className="card" style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                             <Package size={48} style={{ opacity: 0.1, marginBottom: '1rem' }} />
                             <p>No results found</p>
                         </div>
                     ) : (
-                        filteredDos.map(item => (
+                        paginatedDos.map(item => (
                             <div key={item.id} className="card animate-fade-in" style={{ padding: '1.25rem', borderLeft: `4px solid ${item.isClosed ? 'var(--success)' : 'var(--primary)'}` }} onClick={() => setSelectedDo(item)}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <div style={{
@@ -290,6 +403,44 @@ const DOList = ({ dos, onDelete, onEdit }) => {
                         ))
                     )}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingBottom: '1rem' }}>
+                        <button
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(p => p - 1)}
+                            style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}
+                        >Prev</button>
+
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                            {[...Array(totalPages)].map((_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                    style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid var(--border)',
+                                        backgroundColor: currentPage === i + 1 ? 'var(--primary)' : 'white',
+                                        color: currentPage === i + 1 ? 'white' : 'var(--text-main)',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(p => p + 1)}
+                            style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}
+                        >Next</button>
+                    </div>
+                )}
             </div>
 
             {/* Mobile Detail Modal Overlay */}
@@ -385,6 +536,39 @@ const DOList = ({ dos, onDelete, onEdit }) => {
                             </button>
                         </div>
                     </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Lightbox Portal */}
+            {lightboxImage && createPortal(
+                <div
+                    onClick={() => setLightboxImage(null)}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        backdropFilter: 'blur(8px)',
+                        zIndex: 10000,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '2rem',
+                        cursor: 'zoom-out'
+                    }}
+                >
+                    <button
+                        onClick={() => setLightboxImage(null)}
+                        style={{ position: 'absolute', top: '2rem', right: '2rem', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', padding: '12px', borderRadius: '50%', cursor: 'pointer' }}
+                    >
+                        <X size={24} />
+                    </button>
+                    <img
+                        src={lightboxImage}
+                        style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', cursor: 'default' }}
+                        onClick={(e) => e.stopPropagation()}
+                        alt="Enlarged Evidence"
+                    />
                 </div>,
                 document.body
             )}

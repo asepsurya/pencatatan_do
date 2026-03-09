@@ -392,7 +392,7 @@ const DOForm = ({ onAdd, initialData, onCancel }) => {
                             type="button"
                             onClick={() => setPeriod('AM')}
                             style={{
-                                padding: '6px 10px', borderRadius: '6px', border: 'none', fontSize: '0.75rem', fontWeight: 800,
+                                padding: '6px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800,
                                 backgroundColor: period === 'AM' ? 'var(--primary)' : 'white',
                                 color: period === 'AM' ? 'white' : '#94a3b8',
                                 cursor: 'pointer', transition: 'all 0.2s', border: period === 'AM' ? 'none' : '1px solid #e2e8f0'
@@ -402,7 +402,7 @@ const DOForm = ({ onAdd, initialData, onCancel }) => {
                             type="button"
                             onClick={() => setPeriod('PM')}
                             style={{
-                                padding: '6px 10px', borderRadius: '6px', border: 'none', fontSize: '0.75rem', fontWeight: 800,
+                                padding: '6px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800,
                                 backgroundColor: period === 'PM' ? 'var(--primary)' : 'white',
                                 color: period === 'PM' ? 'white' : '#94a3b8',
                                 cursor: 'pointer', transition: 'all 0.2s', border: period === 'PM' ? 'none' : '1px solid #e2e8f0'
@@ -455,10 +455,10 @@ const DOForm = ({ onAdd, initialData, onCancel }) => {
                     </div>
                 ) : (
                     <div style={{ position: 'relative', display: 'inline-block', width: '100%', maxWidth: '400px' }}>
-                        <input type="file" accept="image/*" capture="environment" onChange={handleImageUpload}
+                        <input type="file" accept="image/*" onChange={handleImageUpload}
                             style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', zIndex: 5 }} />
-                        <button type="button" className="btn btn-primary" style={{ width: '100%', padding: '0.9rem', borderRadius: '1rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                            Mulai Scan Dokumen
+                        <button type="button" className="btn btn-primary" style={{ width: '100%', padding: '1rem', borderRadius: '1.25rem', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', boxShadow: '0 10px 15px -3px rgba(30, 58, 138, 0.3)' }}>
+                            <ImageIcon size={20} /> Ambil dari Kamera / Galeri
                         </button>
                     </div>
                 )}
